@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "maxlingo",
+    "slug": "maxlingo",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "maxlingo"
+}
