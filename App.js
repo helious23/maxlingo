@@ -19,31 +19,32 @@ const AnimatedBox = Animated.createAnimatedComponent(Box);
 
 export default function App() {
   const [up, setUp] = useState(false);
-  const Y_POSITION = useRef(new Animated.Value(200)).current;
+  const position = useRef(new Animated.ValueXY({ x: 0, y: 200 })).current;
   const toggleUp = () => setUp((prev) => !prev);
   const moveUp = () => {
-    Animated.timing(Y_POSITION, {
+    Animated.timing(position, {
       toValue: up ? 200 : -200,
-      useNativeDriver: true,
+      useNativeDriver: false,
       duration: 1000,
     }).start(toggleUp);
   };
 
-  const opacity = Y_POSITION.interpolate({
-    inputRange: [-200, 0, 200],
-    outputRange: [1, 0.1, 1],
-  });
-
-  const borderRadius = Y_POSITION.interpolate({
+  const borderRadius = position.y.interpolate({
     inputRange: [-200, 200],
     outputRange: [100, 0],
   });
 
-  Y_POSITION.addListener(() => {
-    console.log("Y Value", Y_POSITION);
-    console.log("Opacity", opacity);
-    console.log("borderRadius", borderRadius);
+  const rotation = position.y.interpolate({
+    inputRange: [-200, 200],
+    outputRange: ["-360deg", "360deg"],
   });
+
+  const bgColor = position.y.interpolate({
+    inputRange: [-200, 0, 200],
+    outputRange: ["rgb(255, 99, 71)", "rgb(255,255,255)", "rgb(2, 166, 255)"],
+  });
+
+  position.addListener(() => console.log(bgColor));
 
   return (
     <Container>
@@ -51,8 +52,8 @@ export default function App() {
         <AnimatedBox
           style={{
             borderRadius,
-            opacity,
-            transform: [{ translateY: Y_POSITION }],
+            backgroundColor: bgColor,
+            transform: [{ translateY: position.y }, { rotateY: rotation }],
           }}
         />
       </Pressable>
