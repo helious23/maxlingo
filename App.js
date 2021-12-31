@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import styled from "styled-components/native";
-import { Animated, Pressable, Dimensions } from "react-native";
+import { Animated, PanResponder, Dimensions } from "react-native";
 import { Easing } from "react-native";
 
 const Container = styled.View`
@@ -22,57 +22,14 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 export default function App() {
   const position = useRef(
     new Animated.ValueXY({
-      x: -SCREEN_WIDTH / 2 + 100,
-      y: -SCREEN_HEIGHT / 2 + 100,
+      x: 0,
+      y: 0,
     })
   ).current;
-
-  const topLeft = Animated.timing(position, {
-    toValue: {
-      x: -SCREEN_WIDTH / 2 + 100,
-      y: -SCREEN_HEIGHT / 2 + 100,
-    },
-    useNativeDriver: false,
-  });
-
-  const bottomLeft = Animated.timing(position, {
-    toValue: {
-      x: -SCREEN_WIDTH / 2 + 100,
-      y: SCREEN_HEIGHT / 2 - 100,
-    },
-    useNativeDriver: false,
-  });
-
-  const bottomRight = Animated.timing(position, {
-    toValue: {
-      x: SCREEN_WIDTH / 2 - 100,
-      y: SCREEN_HEIGHT / 2 - 100,
-    },
-    useNativeDriver: false,
-  });
-
-  const topRight = Animated.timing(position, {
-    toValue: {
-      x: SCREEN_WIDTH / 2 - 100,
-      y: -SCREEN_HEIGHT / 2 + 100,
-    },
-    useNativeDriver: false,
-  });
-
-  const moveUp = () => {
-    Animated.loop(
-      Animated.sequence([bottomLeft, bottomRight, topRight, topLeft])
-    ).start();
-  };
 
   const borderRadius = position.y.interpolate({
     inputRange: [-200, 200],
     outputRange: [100, 0],
-  });
-
-  const rotation = position.y.interpolate({
-    inputRange: [-200, 200],
-    outputRange: ["-360deg", "360deg"],
   });
 
   const bgColor = position.y.interpolate({
@@ -80,22 +37,40 @@ export default function App() {
     outputRange: ["rgb(255, 99, 71)", "rgb(2, 166, 255)"],
   });
 
-  position.addListener(() => console.log(position.getTranslateTransform()));
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, { dx, dy }) => {
+        position.setValue({
+          x: dx,
+          y: dy,
+        });
+      },
+      onPanResponderRelease: () => {
+        Animated.spring(position, {
+          toValue: {
+            x: 0,
+            y: 0,
+          },
+          bounciness: 10,
+          useNativeDriver: false,
+        }).start();
+      },
+    })
+  ).current;
+
+  // position.addListener(() => console.log(position.getTranslateTransform()));
 
   return (
     <Container>
-      <Pressable onPress={moveUp}>
-        <AnimatedBox
-          style={{
-            borderRadius,
-            backgroundColor: bgColor,
-            transform: [
-              // { rotateY: rotation },
-              ...position.getTranslateTransform(),
-            ],
-          }}
-        />
-      </Pressable>
+      <AnimatedBox
+        {...panResponder.panHandlers}
+        style={{
+          borderRadius,
+          backgroundColor: bgColor,
+          transform: position.getTranslateTransform(),
+        }}
+      />
     </Container>
   );
 }
