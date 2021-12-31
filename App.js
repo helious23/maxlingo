@@ -40,26 +40,26 @@ export default function App() {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        console.log("Touch started");
+        position.setOffset({
+          x: position.x._value,
+          y: position.y._value,
+        });
+      },
       onPanResponderMove: (_, { dx, dy }) => {
+        console.log("Moving");
         position.setValue({
           x: dx,
           y: dy,
         });
       },
       onPanResponderRelease: () => {
-        Animated.spring(position, {
-          toValue: {
-            x: 0,
-            y: 0,
-          },
-          bounciness: 10,
-          useNativeDriver: false,
-        }).start();
+        console.log("Touch finished");
+        position.flattenOffset();
       },
     })
   ).current;
-
-  // position.addListener(() => console.log(position.getTranslateTransform()));
 
   return (
     <Container>
